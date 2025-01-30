@@ -1,0 +1,45 @@
+<div>
+    <h5 class="text-gradient">Detalle del Servicio</h5>
+    <div class="p-3 shadow-sm rounded bg-light">
+        <!-- Información del Cliente -->
+        <h6 class="text-muted">Información del Cliente</h6>
+        <p><strong>Nombre:</strong> {{ servicio['NOMBRE'] }}</p>
+        <p><strong>Teléfono:</strong> {{ servicio['TELEFONO'] }}</p>
+        <p><strong>Dirección:</strong> {{ servicio['DIRECCION'] }}</p>
+
+        <!-- Información del Servicio -->
+        <h6 class="text-muted mt-4">Detalles del Servicio</h6>
+        <p><strong>Fecha:</strong> {{ servicio['FECHA'] }}</p>
+        <p><strong>Hora:</strong> {{ servicio['HORA'] }}</p>
+        <p><strong>Servicio:</strong> {{ servicio['SERVICIO'] }}</p>
+        <p><strong>Notas:</strong> {{ servicio['NOTAS'] }}</p>
+        <p><strong>Técnico Asignado:</strong> {{ servicio['TECNICO ASIGNADO'] }}</p>
+        <p><strong>Estado:</strong>
+            <span class="badge {% if servicio['CULMINADO'] == 'SI' %}badge-success{% else %}badge-danger{% endif %}">
+                {{ 'Culminado' if servicio['CULMINADO'] == 'SI' else 'Pendiente' }}
+            </span>
+        </p>
+        <p><strong>Hora de Finalización:</strong> {{ servicio['HORA FIN'] }}</p>
+        <p><strong>Observaciones:</strong> {{ servicio['OBSERVACIONES'] }}</p>
+
+        <!-- Imágenes del Servicio -->
+        <h6 class="text-muted mt-4">Imágenes</h6>
+        <div class="row">
+            {% if servicio['IMAGEN1'] %}
+            <div class="col-md-4">
+                <img src="{{ servicio['IMAGEN1'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 1">
+            </div>
+            {% endif %}
+            {% if servicio['IMAGEN2'] %}
+            <div class="col-md-4">
+                <img src="{{ servicio['IMAGEN2'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 2">
+            </div>
+            {% endif %}
+            {% if servicio['IMAGEN3'] %}
+            <div class="col-md-4">
+                <img src="{{ servicio['IMAGEN3'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 3">
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

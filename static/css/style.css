@@ -1,0 +1,155 @@
+/* General */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f8fb;
+    color: #4a4a4a;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin: 0 auto;
+    padding: 15px;
+}
+
+button, .btn, input.form-control {
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+/* Toast */
+.toast {
+    background-color: #343a40;
+    color: white;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.navbar-nav .nav-link {
+    font-size: 1rem;
+    margin-right: 10px;
+    transition: color 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #0056b3;
+}
+
+/* Tabla */
+.table-responsive {
+    margin-top: 20px;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.table-gradient {
+    background: linear-gradient(90deg, #6aa9ff, #3b5998);
+    color: white;
+}
+
+.table th {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.table td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+/* Inputs */
+.input-group-text {
+    background: linear-gradient(90deg, #f4f8fb, #e8eef4);
+    color: #4a4a4a;
+}
+
+input.form-control:focus {
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.25);
+}
+
+/* Botones */
+.btn-gradient {
+    background: linear-gradient(90deg, #ff7eb3, #ff758c);
+    color: white;
+    border: none;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.btn-gradient:hover {
+    background: linear-gradient(90deg, #ff758c, #ff7eb3);
+}
+
+.btn-group .btn {
+    margin-right: 5px;
+}
+
+/* Badges */
+.badge-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Estilo para íconos de acciones */
+.action-icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s, transform 0.2s;
+}
+
+.action-icon:hover {
+    transform: scale(1.1);
+    opacity: 0.7;
+}
+
+/* Overlay para cargar detalles */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1050; /* Por encima de otros elementos */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px); /* Efecto de desenfoque */
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-overlay.d-none {
+    display: none;
+}
+
+/* Fondo del modal de detalle */
+#dynamicModalDetail {
+    z-index: 1055; /* Modal de detalle en un nivel más bajo */
+}
+
+/* Fondo del modal adicional (editar o nuevo) */
+#dynamicModal {
+    z-index: 1060; /* Modal adicional por encima del detalle */
+}
+
+/* Ajuste del backdrop */
+.modal-backdrop {
+    z-index: 1050; /* Fondo detrás de ambos modales */
+}

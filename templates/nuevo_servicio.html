@@ -1,0 +1,50 @@
+<div class="container-fluid">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-12">
+            <h2 class="text-gradient">Nuevo Servicio</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <select id="direccion" name="direccion" class="form-select" required>
+                                <option value="" disabled selected>Seleccione una Dirección</option>
+                                {% for direccion in direcciones %}
+                                <option value="{{ direccion['DIRECCION'] }}">{{ direccion['DIRECCION'] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="servicio" class="form-label">Servicio</label>
+                            <input type="text" id="servicio" name="servicio" class="form-control" placeholder="Descripción del servicio" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notas" class="form-label">Notas</label>
+                            <input type="text" id="notas" name="notas" class="form-control" placeholder="Notas adicionales (opcional)">
+                        </div>
+                        <div class="mb-3">
+                            <label for="fecha_hora" class="form-label">Fecha y Hora</label>
+                            <input type="text" id="fecha_hora" name="fecha_hora" class="form-control" placeholder="Seleccione fecha y hora" required>
+                        </div>
+                        <button type="submit" class="btn btn-gradient w-100">Guardar Servicio</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    flatpickr("#fecha_hora", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+        minDate: "today",
+        locale: "es"
+    });
+</script>

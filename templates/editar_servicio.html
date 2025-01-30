@@ -1,0 +1,31 @@
+<div class="container-fluid">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-12">
+            <h2 class="text-gradient">Editar Servicio</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <input type="text" id="direccion" name="direccion" class="form-control" value="{{ servicio[2] }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="servicio" class="form-label">Servicio</label>
+                            <input type="text" id="servicio" name="servicio" class="form-control" value="{{ servicio[3] }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tecnico_asignado" class="form-label">Técnico Asignado</label>
+                            <input type="text" id="tecnico_asignado" name="tecnico_asignado" class="form-control" value="{{ servicio[4] }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-gradient w-100">Guardar Cambios</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

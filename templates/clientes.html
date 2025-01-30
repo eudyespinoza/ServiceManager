@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title %}Clientes{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Encabezado con íconos -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h2 class="text-gradient">Clientes</h2>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <span class="action-icon text-success" onclick="location.href='{{ url_for('nuevo_cliente') }}'" data-bs-toggle="tooltip" title="Agregar Nuevo Cliente">
+                <i class="bi bi-person-plus"></i>
+            </span>
+        </div>
+    </div>
+
+    <!-- Barra de búsqueda -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="input-group">
+                <span class="input-group-text bg-gradient-light border-0"><i class="bi bi-search"></i></span>
+                <input type="text" id="searchInput" class="form-control shadow-sm" placeholder="Buscar clientes..." onkeyup="searchTable('searchInput', 'clientesTable')">
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla responsiva -->
+    <div class="table-responsive shadow-sm rounded">
+        <table id="clientesTable" class="table align-middle">
+            <thead class="table-gradient text-white">
+                <tr>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Condición</th>
+                    <th scope="col">Teléfono</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr onclick="openDynamicModal('{{ url_for('detalle_cliente', row_id=cliente.Row_ID) }}', 'Detalle del Cliente', true)" style="cursor: pointer;">
+                    <td>{{ cliente.NOMBRE }}</td>
+                    <td>
+                        <span class="badge {% if cliente.EN_MORA == 'TRUE' %}badge-danger{% else %}badge-success{% endif %}">
+                            {{ 'En Mora' if cliente.EN_MORA == 'TRUE' else 'Regular' }}
+                        </span>
+                    </td>
+                    <td>{{ cliente.TELEFONO }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
