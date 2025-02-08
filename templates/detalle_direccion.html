@@ -1,0 +1,28 @@
+<div class="container-fluid">
+    <!-- Información de la Dirección -->
+    <div class="mb-4">
+        <h5 class="text-gradient">Detalle de la Dirección</h5>
+        <div class="p-3 shadow-sm rounded bg-light">
+            <p><strong>Dirección:</strong> {{ direccion['DIRECCION'] }}</p>
+            <p><strong>Tipo:</strong> {{ direccion['TIPO'] if direccion['TIPO'] else 'No especificado' }}</p>
+        </div>
+    </div>
+
+    <!-- Información del Cliente Asociado -->
+    <div class="mb-4">
+        <h5 class="text-gradient">Información del Cliente</h5>
+        <div class="p-3 shadow-sm rounded bg-light">
+            <p><strong>ID Cliente:</strong> {{ direccion['ID_Cliente'] }}</p>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="d-flex gap-3">
+        <span class="action-icon text-warning" onclick="openDynamicModal('{{ url_for('editar_direccion', id_direccion=direccion['🔒 Row ID']) }}', 'Editar Dirección')" data-bs-toggle="tooltip" title="Editar Dirección">
+            <i class="bi bi-pencil-square"></i>
+        </span>
+        <span class="action-icon text-danger" onclick="borrarDireccion('{{ direccion['🔒 Row ID'] }}')" data-bs-toggle="tooltip" title="Eliminar Dirección">
+            <i class="bi bi-trash"></i>
+        </span>
+    </div>
+</div>
