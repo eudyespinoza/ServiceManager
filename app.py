@@ -127,6 +127,7 @@ def detalle_cliente(row_id):
         # Filtrar las direcciones asociadas al cliente
         direcciones = sheet_direcciones.get_all_records()
         direcciones_filtradas = [direccion for direccion in direcciones if str(direccion['ID_Cliente']) == row_id]
+        print(direcciones_filtradas)
 
         # Filtrar los servicios asociados al cliente
         servicios = sheet_servicios.get_all_records()
@@ -194,21 +195,44 @@ def nueva_direccion(id_cliente):
 @login_required
 def detalle_direccion(id_direccion):
     try:
-        # Buscar dirección por ID en Google Sheets
-        cell = sheet_direcciones.find(id_direccion)
-        direccion = sheet_direcciones.row_values(cell.row)
+        print(f"📌 Buscando dirección con ID: {id_direccion}")
+
+        # Obtener los encabezados de la hoja para saber en qué columna está "🔒 Row ID"
+        headers = sheet_direcciones.row_values(1)
+
+        # Buscar la posición de la columna "🔒 Row ID"
+        try:
+            col_index = headers.index("🔒 Row ID") + 1  # Convertimos a índice de Google Sheets (1-based)
+        except ValueError:
+            print("❌ No se encontró la columna '🔒 Row ID' en la hoja.")
+            return jsonify({"error": "Error interno: Columna '🔒 Row ID' no encontrada"}), 500
+
+        # Obtener SOLO los valores de la columna "🔒 Row ID"
+        row_ids = sheet_direcciones.col_values(col_index)
+
+        # Buscar el índice de la fila que tiene el ID
+        try:
+            row_index = row_ids.index(id_direccion) + 1  # Convertimos a índice de Google Sheets (1-based)
+        except ValueError:
+            print("❌ Dirección no encontrada en la columna '🔒 Row ID'.")
+            return jsonify({"error": "Dirección no encontrada"}), 404
+
+        # Obtener los valores de la fila donde está la dirección
+        direccion = sheet_direcciones.row_values(row_index)
 
         # Convertir la fila en un diccionario
-        headers = sheet_direcciones.row_values(1)
         direccion_dict = dict(zip(headers, direccion))
-
-        # Renderizar plantilla con el detalle de la dirección
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # Verificar si es una solicitud AJAX
+        print(direccion_dict)
+        # Renderizar la plantilla con la información de la dirección
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return render_template('detalle_direccion.html', direccion=direccion_dict)
 
-        return redirect(url_for('clientes'))  # Fallback si no es AJAX
+        return redirect(url_for('clientes'))
+
     except Exception as e:
+        print(f"❌ Error en detalle_direccion: {str(e)}")
         return jsonify({"error": f"No se pudo cargar el detalle de la dirección: {str(e)}"}), 500
+
 
 @app.route('/direcciones/editar/<string:id_direccion>', methods=['GET', 'POST'])
 @login_required
@@ -262,21 +286,19 @@ def nuevo_servicio(id_cliente):
 @login_required
 def detalle_servicio(id_servicio):
     try:
-        print("ID Servicio: ",id_servicio)
-        # Buscar servicio por ID en Google Sheets o tu sistema de base de datos
         cell = sheet_servicios.find(id_servicio)
-        servicio_data = sheet_servicios.row_values(cell.row)
+        if not cell:
+            return jsonify({"error": "Servicio no encontrado"}), 404
 
-        # Convertir la fila en un diccionario para facilitar el acceso
+        servicio_data = sheet_servicios.row_values(cell.row)
         headers = sheet_servicios.row_values(1)
         servicio = dict(zip(headers, servicio_data))
-
-        # Renderizar el contenido del modal
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # Verificar si es una solicitud AJAX
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return render_template('detalle_servicio.html', servicio=servicio)
 
-        return redirect(url_for('clientes'))  # Fallback para accesos normales
+        return redirect(url_for('clientes'))
     except Exception as e:
+        print(f"❌ Error en detalle_servicio: {str(e)}")  # 👈 Log para errores
         return jsonify({"error": f"No se pudo cargar el detalle del servicio: {str(e)}"}), 500
 
 @app.route('/servicios/editar/<string:id_servicio>', methods=['GET', 'POST'])
@@ -318,5 +340,5 @@ def agenda():
         return render_template('error.html', error=e)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Usa el puerto de Render o 5000 por defecto
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True)

@@ -1,4 +1,6 @@
 /* General */
+@import url('https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css');
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: #f4f8fb;
@@ -139,17 +141,77 @@ input.form-control:focus {
     display: none;
 }
 
-/* Fondo del modal de detalle */
+/* Fondo del primer modal de detalles (debe permitir interacción) */
 #dynamicModalDetail {
-    z-index: 1055; /* Modal de detalle en un nivel más bajo */
+    z-index: 1055;
 }
 
-/* Fondo del modal adicional (editar o nuevo) */
+/* Fondo del segundo modal adicional (editar o nuevo) */
 #dynamicModal {
-    z-index: 1060; /* Modal adicional por encima del detalle */
+    z-index: 1060;
 }
 
-/* Ajuste del backdrop */
+/* Ajuste del backdrop (el del primer modal debe ser normal, los demás personalizados) */
 .modal-backdrop {
-    z-index: 1050; /* Fondo detrás de ambos modales */
+    z-index: 1050; /* Fondo del primer modal */
 }
+
+/* Fondo del segundo y tercer modal sobre el primero */
+.custom-backdrop {
+    z-index: 1056 !important; /* Fondo del segundo modal sin bloquear la interacción */
+    background-color: rgba(0, 0, 0, 0.5); /* Mantiene el desenfoque */
+}
+
+/* NUEVAS MODIFICACIONES
+/* Iconos de acciones */
+.action-icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.action-icon:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+}
+
+/* Contenedores de información */
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+/* Listado de servicios */
+.list-group-item {
+    border: none;
+    background-color: #ffffff;
+}
+
+.list-group-item:hover {
+    background-color: #f1f1f1;
+}
+
+.list-group-item {
+    transition: all 0.2s ease-in-out;
+}
+
+#noResultsMessage {
+    font-style: italic;
+}
+
+/* Fondo del encabezado */
+.bg-primary {
+    background-color: #0b0146 !important; /* Color oscuro como en la imagen */
+}
+
+/* Espaciado y bordes */
+.border-bottom {
+    border-bottom: 1px solid #ddd !important;
+}
+
+/* Alineación en versión móvil */
+@media (max-width: 768px) {
+    .text-center {
+        text-align: left !important;
+    }
+}
+

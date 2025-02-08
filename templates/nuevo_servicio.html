@@ -39,12 +39,7 @@
     </div>
 </div>
 
-<script>
-    flatpickr("#fecha_hora", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        time_24hr: true,
-        minDate: "today",
-        locale: "es"
-    });
-</script>
+
+<!-- 📌 Importar el script global -->
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+

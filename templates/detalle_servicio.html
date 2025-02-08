@@ -1,45 +1,95 @@
-<div>
-    <h5 class="text-gradient">Detalle del Servicio</h5>
-    <div class="p-3 shadow-sm rounded bg-light">
-        <!-- Información del Cliente -->
-        <h6 class="text-muted">Información del Cliente</h6>
-        <p><strong>Nombre:</strong> {{ servicio['NOMBRE'] }}</p>
-        <p><strong>Teléfono:</strong> {{ servicio['TELEFONO'] }}</p>
-        <p><strong>Dirección:</strong> {{ servicio['DIRECCION'] }}</p>
+<div class="container-fluid px-4">
+    <!-- Encabezado con el nombre del cliente -->
+    <div class="bg-primary text-white p-3 rounded-top">
+        <h4 class="mb-0 fw-bold">{{ servicio['NOMBRE'] }}</h4>
+        <p class="mb-0">{{ servicio['DIRECCION'] }}</p>
+    </div>
 
-        <!-- Información del Servicio -->
-        <h6 class="text-muted mt-4">Detalles del Servicio</h6>
-        <p><strong>Fecha:</strong> {{ servicio['FECHA'] }}</p>
-        <p><strong>Hora:</strong> {{ servicio['HORA'] }}</p>
-        <p><strong>Servicio:</strong> {{ servicio['SERVICIO'] }}</p>
-        <p><strong>Notas:</strong> {{ servicio['NOTAS'] }}</p>
-        <p><strong>Técnico Asignado:</strong> {{ servicio['TECNICO ASIGNADO'] }}</p>
-        <p><strong>Estado:</strong>
-            <span class="badge {% if servicio['CULMINADO'] == 'SI' %}badge-success{% else %}badge-danger{% endif %}">
-                {{ 'Culminado' if servicio['CULMINADO'] == 'SI' else 'Pendiente' }}
-            </span>
-        </p>
-        <p><strong>Hora de Finalización:</strong> {{ servicio['HORA FIN'] }}</p>
-        <p><strong>Observaciones:</strong> {{ servicio['OBSERVACIONES'] }}</p>
+    <!-- Secciones de detalles -->
+    <div class="bg-white p-3 rounded-bottom shadow-sm">
+        <!-- Servicio solicitado y notas -->
+        <div class="row py-2 border-bottom">
+            <div class="col-md-6">
+                <h6 class="fw-bold">SERVICIO SOLICITADO</h6>
+                <p>{{ servicio['SERVICIO'] }}</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">NOTAS</h6>
+                <p>{{ servicio['NOTAS'] }}</p>
+            </div>
+        </div>
 
-        <!-- Imágenes del Servicio -->
-        <h6 class="text-muted mt-4">Imágenes</h6>
-        <div class="row">
-            {% if servicio['IMAGEN1'] %}
-            <div class="col-md-4">
-                <img src="{{ servicio['IMAGEN1'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 1">
+        <!-- Observaciones del técnico -->
+        <div class="row py-2 border-bottom">
+            <div class="col-12">
+                <h6 class="fw-bold">OBSERVACIONES DEL TÉCNICO</h6>
+                <p>{{ servicio['OBSERVACIONES'] }}</p>
             </div>
-            {% endif %}
-            {% if servicio['IMAGEN2'] %}
-            <div class="col-md-4">
-                <img src="{{ servicio['IMAGEN2'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 2">
+        </div>
+
+        <!-- Imágenes -->
+        <div class="row py-2 border-bottom">
+            <div class="col-12">
+                <h6 class="fw-bold">IMÁGENES</h6>
+                <div class="row">
+                    {% if servicio['IMAGEN1'] %}
+                    <div class="col-md-4">
+                        <img src="{{ servicio['IMAGEN1'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 1">
+                    </div>
+                    {% endif %}
+                    {% if servicio['IMAGEN2'] %}
+                    <div class="col-md-4">
+                        <img src="{{ servicio['IMAGEN2'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 2">
+                    </div>
+                    {% endif %}
+                    {% if servicio['IMAGEN3'] %}
+                    <div class="col-md-4">
+                        <img src="{{ servicio['IMAGEN3'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 3">
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            {% endif %}
-            {% if servicio['IMAGEN3'] %}
+        </div>
+
+        <!-- Datos del servicio -->
+        <div class="row text-center py-3 border-bottom">
             <div class="col-md-4">
-                <img src="{{ servicio['IMAGEN3'] }}" class="img-fluid rounded shadow-sm" alt="Imagen 3">
+                <h6 class="fw-bold">FECHA Y HORA PACTADA</h6>
+                <p>{{ servicio['FECHA'] | format_datetime('%d de %B de %Y, %H:%M') }}</p>
             </div>
-            {% endif %}
+            <div class="col-md-4">
+                <h6 class="fw-bold">TÉCNICO ASIGNADO</h6>
+                <p>{{ servicio['TECNICO ASIGNADO'] }}</p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">FECHA Y HORA DE INICIO</h6>
+                <p>{{ servicio['HORA'] | format_datetime('%d/%m/%Y, %H:%M') }}</p>
+            </div>
+        </div>
+
+        <div class="row text-center py-3 border-bottom">
+            <div class="col-md-4">
+                <h6 class="fw-bold">ESTADO DEL SERVICIO</h6>
+                <p class="{% if servicio['CULMINADO'] == 'SI' %}text-success{% else %}text-danger{% endif %}">
+                    {{ 'FINALIZADO' if servicio['CULMINADO'] == 'SI' else 'PENDIENTE' }}
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h6 class="fw-bold">FECHA Y HORA CULMINACIÓN</h6>
+                <p>{{ servicio['HORA FIN'] | format_datetime('%d/%m/%Y, %H:%M') }}</p>
+            </div>
+        </div>
+
+        <!-- Última modificación -->
+        <div class="row text-center py-3">
+            <div class="col-md-6">
+                <h6 class="fw-bold">FECHA Y HORA ÚLTIMA MODIFICACIÓN</h6>
+                <p>{{ servicio['FECHA_ULTIMA_MODIFICACION'] | format_datetime('%d/%m/%Y, %H:%M') }}</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">MODIFICADO POR:</h6>
+                <p>{{ servicio['USUARIO_ULTIMA_MODIFICACION'] }}</p>
+            </div>
         </div>
     </div>
 </div>

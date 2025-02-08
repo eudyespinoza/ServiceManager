@@ -1,86 +1,70 @@
-<div>
+<div class="container-fluid py-3">
     <!-- Información del Cliente -->
     <div class="mb-4">
-        <h5 class="text-gradient">Información del Cliente</h5>
-        <div class="p-3 shadow-sm rounded bg-light">
-            <p><strong>DNI:</strong> {{ cliente['DNI'] }}</p>
-            <p><strong>Nombre:</strong> {{ cliente['NOMBRE'] }}</p>
-            <p><strong>Condición:</strong> {{ 'En Mora' if cliente['EN_MORA'] == 'TRUE' else 'Regular' }}</p>
-            <p><strong>Teléfono:</strong> {{ cliente['TELEFONO'] }}</p>
-            <div class="d-flex gap-3 mt-3">
-                <span class="action-icon text-warning" onclick="openDynamicModal('{{ url_for('editar_cliente', id_cliente=cliente['Row_ID']) }}', 'Editar Cliente')" data-bs-toggle="tooltip" title="Editar Cliente">
-                    <i class="bi bi-pencil-square"></i>
-                </span>
-                <span class="action-icon text-danger" onclick="borrarCliente('{{ cliente['Row_ID'] }}')" data-bs-toggle="tooltip" title="Eliminar Cliente">
-                    <i class="bi bi-trash"></i>
-                </span>
-            </div>
+        <h3 class="fw-bold">{{ cliente['NOMBRE'] }}</h3>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted">TELÉFONO</span>
+            <span class="text-dark">{{ cliente['TELEFONO'] }}</span>
+            <span class="ms-auto">
+                <i class="bi bi-whatsapp action-icon text-success" onclick="enviarWhatsApp('{{ cliente['TELEFONO'] }}')" data-bs-toggle="tooltip" title="Enviar WhatsApp"></i>
+                <i class="bi bi-telephone action-icon text-dark" onclick="llamar('{{ cliente['TELEFONO'] }}')" data-bs-toggle="tooltip" title="Llamar"></i>
+            </span>
         </div>
     </div>
 
-    <!-- Direcciones -->
-    <div class="mb-4">
-        <h5 class="text-gradient">Direcciones</h5>
-        <div class="p-3 shadow-sm rounded bg-light">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Listado de Direcciones</h6>
-                <span class="action-icon text-success" onclick="openDynamicModal('{{ url_for('nueva_direccion', id_cliente=cliente['Row_ID']) }}', 'Nueva Dirección')" data-bs-toggle="tooltip" title="Agregar Dirección">
-                    <i class="bi bi-plus-circle"></i>
-                </span>
-            </div>
-            <div class="table-responsive shadow-sm rounded">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Dirección</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for direccion in direcciones %}
-                        <tr onclick="openDynamicModal('{{ url_for('editar_direccion', id_direccion=direccion['ID_DIRECCION']) }}', 'Editar Dirección')" style="cursor: pointer;">
-                            <td>{{ direccion['DIRECCION'] }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<!-- Direcciones -->
+<div class="mb-4">
+    <h5 class="fw-bold">DIRECCIONES</h5>
+    <div class="d-flex justify-content-between align-items-center">
+        <div class="w-100">
+            {% if direcciones %}
+                {% for direccion in direcciones %}
+                    <div class="p-3 bg-light rounded shadow-sm mb-2 d-flex justify-content-between align-items-center"
+                         onclick="openDynamicModal('{{ url_for('detalle_direccion', id_direccion=direccion['🔒 Row ID']) }}', 'Detalle de la Dirección')"
+                         style="cursor: pointer;">
+                        <span>{{ direccion['DIRECCION'] }}</span>
+                        <i class="bi bi-three-dots-vertical text-muted"></i>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <span class="text-muted">No hay direcciones registradas.</span>
+            {% endif %}
         </div>
-    </div>
-
-    <!-- Servicios -->
-    <div>
-        <h5 class="text-gradient">Servicios</h5>
-        <div class="p-3 shadow-sm rounded bg-light">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0">Listado de Servicios</h6>
-                <span class="action-icon text-success" onclick="openDynamicModal('{{ url_for('nuevo_servicio', id_cliente=cliente['Row_ID']) }}', 'Nuevo Servicio')" data-bs-toggle="tooltip" title="Agregar Servicio">
-                    <i class="bi bi-plus-circle"></i>
-                </span>
-            </div>
-            <div class="table-responsive shadow-sm rounded">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Servicio</th>
-                            <th>Técnico Asignado</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for servicio in servicios %}
-                        <tr onclick="openDynamicModal('{{ url_for('detalle_servicio', id_servicio=servicio['id_servicio']) }}', 'Detalle Servicio')" style="cursor: pointer;">
-                            <td>{{ servicio['SERVICIO'] }}</td>
-                            <td>{{ servicio['TECNICO ASIGNADO'] }}</td>
-                            <td>
-                                <span class="badge {% if servicio['CULMINADO'] == 'SI' %}badge-success{% else %}badge-danger{% endif %}">
-                                    {{ 'Culminado' if servicio['CULMINADO'] == 'SI' else 'Pendiente' }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <i class="bi bi-plus-circle-fill action-icon text-primary ms-2"
+           onclick="openDynamicModal('{{ url_for('nueva_direccion', id_cliente=cliente['Row_ID']) }}', 'Agregar Dirección')"
+           data-bs-toggle="tooltip" title="Agregar Dirección"></i>
     </div>
 </div>
+
+<!-- Servicios -->
+<div>
+    <h5 class="fw-bold">SERVICIOS</h5>
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="input-group w-50">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" placeholder="Buscar servicio..." id="searchService">
+        </div>
+        <i class="bi bi-plus-circle-fill action-icon text-primary"
+           onclick="openDynamicModal('{{ url_for('nuevo_servicio', id_cliente=cliente['Row_ID']) }}', 'Agregar Servicio')"
+           data-bs-toggle="tooltip" title="Agregar Servicio"></i>
+    </div>
+
+    {% if servicios %}
+        <div class="list-group">
+            {% for servicio in servicios %}
+            <div class="list-group-item p-3 shadow-sm rounded"
+                 onclick="openDynamicModal('{{ url_for('detalle_servicio', id_servicio=servicio['id_servicio']) }}', 'Detalle del Servicio')"
+                 style="cursor: pointer;">
+                <small class="text-primary fw-bold">{{ servicio['FECHA'] | format_datetime('%d DE %B DE %Y, %H:%M') }}</small>
+                <h6 class="fw-bold mb-1">{{ servicio['SERVICIO'] }}</h6>
+                <p class="mb-0 text-muted">{{ servicio['NOTAS'] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <span class="text-muted">No hay servicios registrados.</span>
+    {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>

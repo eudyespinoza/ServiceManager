@@ -3,28 +3,26 @@
 {% block title %}Agenda{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row align-items-center mb-4">
-        <div class="col-md-12">
-            <h2 class="text-gradient">Agenda</h2>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-12">
-            <div id="calendar" class="shadow-sm rounded"></div>
-        </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Agenda</h2>
+    <div class="btn-group" role="group">
+        <button class="btn btn-outline-primary" title="Vista Diaria">
+            <i class="bi bi-calendar-day"></i>
+            <span class="visually-hidden">Vista Diaria</span>
+        </button>
+        <button class="btn btn-outline-primary" title="Vista Semanal">
+            <i class="bi bi-calendar-week"></i>
+            <span class="visually-hidden">Vista Semanal</span>
+        </button>
+        <button class="btn btn-outline-primary" title="Vista Mensual">
+            <i class="bi bi-calendar-month"></i>
+            <span class="visually-hidden">Vista Mensual</span>
+        </button>
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridWeek',
-            events: '/get_unfinished_services'
-        });
-        calendar.render();
-    });
-</script>
+<!-- Contenedor del calendario -->
+<div id="calendarContainer">
+    <!-- Implementa tu calendario (FullCalendar u otro) para mostrar servicios programados -->
+</div>
 {% endblock %}

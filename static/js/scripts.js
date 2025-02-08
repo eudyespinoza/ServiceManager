@@ -124,15 +124,35 @@ function submitForm(event, form, onSuccessMessage = 'Acción completada con éxi
 // ------------------------
 
 // Flatpickr para campos de fecha y hora
-function initFlatpickr(selector, config = {}) {
-    flatpickr(selector, {
-        enableTime: true,
-        dateFormat: "d-m-Y H:i",
-        time_24hr: true,
-        locale: "es", // Configuración en español
-        ...config // Permite pasar configuraciones adicionales
-    });
+function initFlatpickr() {
+    if (typeof flatpickr !== "undefined") { // Verificar si está disponible
+        const dateFields = document.querySelectorAll("#fecha_hora");
+        dateFields.forEach(field => {
+            if (!field.classList.contains("flatpickr-input")) { // Evita reinicialización
+                flatpickr(field, {
+                    enableTime: true,
+                    dateFormat: "d-m-Y H:i",
+                    time_24hr: true,
+                    minDate: "today",
+                    locale: "es",
+                });
+            }
+        });
+    } else {
+        console.error("Flatpickr aún no está disponible.");
+    }
 }
+
+// Inicializar cuando la página carga
+document.addEventListener("DOMContentLoaded", function () {
+    initFlatpickr();
+});
+
+// Inicializar cada vez que se abra un modal dinámico
+document.addEventListener("shown.bs.modal", function () {
+    setTimeout(initFlatpickr, 200);
+});
+
 
 // Inicializar búsqueda en tablas
 function initSearch(inputId, tableId) {
@@ -254,44 +274,59 @@ function hideLoadingOverlay() {
 
 // Abrir modal dinámico
 function openDynamicModal(url, title, isDetail = false) {
-    // Determinar el modal a usar
     const modalId = isDetail ? 'dynamicModalDetail' : 'dynamicModal';
     const modalElement = document.getElementById(modalId);
     const modalTitle = modalElement.querySelector('.modal-title');
     const modalContent = modalElement.querySelector('.modal-body');
 
-    // Ajustar z-index del backdrop
-    const modalBackdrop = document.querySelector('.modal-backdrop');
-    if (modalBackdrop) {
-        modalBackdrop.style.zIndex = '1050'; // Fondo detrás de los modales
-    }
-
-    // Configurar contenido inicial
     modalTitle.textContent = title;
     modalContent.innerHTML = '<p class="text-center">Cargando contenido...</p>';
 
-    // Mostrar el overlay de carga
     showLoadingOverlay();
 
-    // Mostrar el modal
-    const modal = new bootstrap.Modal(modalElement);
+    if (!isDetail && document.getElementById('dynamicModal').classList.contains('show')) {
+        const activeModal = bootstrap.Modal.getInstance(document.getElementById('dynamicModal'));
+        if (activeModal) activeModal.hide();
+    }
 
-    // Cargar contenido dinámico
-    fetch(url)
-        .then(response => response.text())
-        .then(data => {
-            modalContent.innerHTML = data;
-            initializeTooltips(); // Reinicializar tooltips
-        })
-        .catch(error => {
-            modalContent.innerHTML = `<p class="text-danger text-center">Error al cargar contenido: ${error.message}</p>`;
-        })
-        .finally(() => {
-            // Ocultar el overlay de carga
-            hideLoadingOverlay();
-            modal.show();
-        });
+    let backdrop = null;
+    if (!isDetail) {
+        backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show custom-backdrop';
+        document.body.appendChild(backdrop);
+    }
+
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: isDetail ? true : false
+    });
+
+    fetch(url, {
+        method: "GET",
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(response => response.text())
+    .then(data => {
+        modalContent.innerHTML = data;
+        initializeTooltips(); // 🔹 Reiniciar tooltips en nuevo contenido
+        initFlatpickr(); // 🔹 Asegurar que flatpickr funcione
+    })
+    .catch(error => {
+        modalContent.innerHTML = `<p class="text-danger text-center">Error al cargar contenido: ${error.message}</p>`;
+    })
+    .finally(() => {
+        hideLoadingOverlay();
+        modal.show();
+    });
+
+    modalElement.addEventListener('hidden.bs.modal', function () {
+        setTimeout(() => {
+            if (backdrop && document.body.contains(backdrop)) {
+                backdrop.remove();
+            }
+        }, 200);
+    });
 }
+
 
 function loadDynamicModal(url, title) {
     const modalElement = document.getElementById('dynamicModal');
@@ -344,3 +379,82 @@ function submitDynamicForm(event, form) {
             showToast(`Error al procesar el formulario: ${error.message}`, 'danger');
         });
 }
+
+// Búsqueda dinamica dentro de servicios
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchService");
+    const serviceList = document.querySelector(".list-group"); // Contenedor de los servicios
+
+    if (searchInput && serviceList) {
+        searchInput.addEventListener("keyup", function () {
+            let filter = searchInput.value.trim().toLowerCase();
+            let services = document.querySelectorAll(".list-group-item");
+            let hasResults = false;
+
+            services.forEach(service => {
+                let serviceText = service.textContent.toLowerCase();
+
+                if (serviceText.includes(filter)) {
+                    service.classList.remove("d-none"); // Mostrar coincidencias
+                    hasResults = true;
+                } else {
+                    service.classList.add("d-none"); // Ocultar no coincidentes
+                }
+            });
+
+            // Si no hay coincidencias, mostrar un mensaje
+            let noResults = document.getElementById("noResultsMessage");
+            if (!hasResults) {
+                if (!noResults) {
+                    noResults = document.createElement("div");
+                    noResults.id = "noResultsMessage";
+                    noResults.className = "text-muted text-center p-3";
+                    noResults.textContent = "No se encontraron resultados";
+                    serviceList.appendChild(noResults);
+                }
+            } else if (noResults) {
+                noResults.remove(); // Si hay coincidencias, eliminar el mensaje de "No se encontraron resultados"
+            }
+        });
+    }
+});
+
+// Asegurar que flatpickr se cargue correctamente
+document.addEventListener("DOMContentLoaded", function () {
+    function initFlatpickr() {
+        const dateFields = document.querySelectorAll("#fecha_hora");
+        dateFields.forEach(field => {
+            if (!field.classList.contains("flatpickr-input")) { // Evita reinicialización
+                flatpickr(field, {
+                    enableTime: true,
+                    dateFormat: "d-m-Y H:i",
+                    time_24hr: true,
+                    minDate: "today",
+                    locale: "es",
+                });
+            }
+        });
+    }
+
+    // Inicializar cuando la página carga
+    initFlatpickr();
+
+    // 🔹 También inicializar cada vez que se cargue contenido dinámico en un modal
+    document.addEventListener("shown.bs.modal", function (event) {
+        setTimeout(initFlatpickr, 200); // Asegurar que el contenido del modal ya cargó
+    });
+});
+
+// Cargar Flatpickr dinámicamente
+(function loadFlatpickr() {
+    if (typeof flatpickr === "undefined") {
+        let script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/flatpickr";
+        script.onload = function () {
+            console.log("Flatpickr cargado correctamente.");
+            initFlatpickr(); // Llamar a la función una vez que esté disponible
+        };
+        document.head.appendChild(script);
+    }
+})();
+
