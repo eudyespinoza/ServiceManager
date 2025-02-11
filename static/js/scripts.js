@@ -1,7 +1,3 @@
-// ------------------------
-// FUNCIONES GENERALES
-// ------------------------
-
 // Mostrar notificación con Toast
 function showToast(message, type = 'success') {
     const toastContainer = document.getElementById('toast-container');
