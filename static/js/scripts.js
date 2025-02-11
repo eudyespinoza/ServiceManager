@@ -458,3 +458,30 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 })();
 
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("#servicioForm");  // Asegurar que existe el formulario
+    if (form) {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();  // Evita la recarga de la página
+
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast("✅ " + data.message, "success");  // Muestra el mensaje en el toast
+                    setTimeout(() => location.reload(), 1500);  // Recarga después de 1.5s
+                } else {
+                    showToast("❌ Error: " + data.message, "danger");
+                }
+            })
+            .catch(error => {
+                showToast("⚠️ Error en la solicitud: " + error.message, "danger");
+            });
+        });
+    }
+});

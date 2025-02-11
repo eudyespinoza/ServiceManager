@@ -9,7 +9,7 @@
         <div class="col-md-12">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <form method="POST">
+                    <form method="POST" action="{{ url_for('nuevo_servicio', id_cliente=id_cliente) }}">
                         <div class="mb-3">
                             <label for="direccion" class="form-label">Dirección</label>
                             <select id="direccion" name="direccion" class="form-select" required>
@@ -39,7 +39,5 @@
     </div>
 </div>
 
-
 <!-- 📌 Importar el script global -->
 <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
-

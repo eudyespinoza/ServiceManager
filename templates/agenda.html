@@ -1,28 +1,105 @@
 {% extends "layout.html" %}
 
-{% block title %}Agenda{% endblock %}
+{% block title %}Agenda de Servicios{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0">Agenda</h2>
-    <div class="btn-group" role="group">
-        <button class="btn btn-outline-primary" title="Vista Diaria">
-            <i class="bi bi-calendar-day"></i>
-            <span class="visually-hidden">Vista Diaria</span>
-        </button>
-        <button class="btn btn-outline-primary" title="Vista Semanal">
-            <i class="bi bi-calendar-week"></i>
-            <span class="visually-hidden">Vista Semanal</span>
-        </button>
-        <button class="btn btn-outline-primary" title="Vista Mensual">
-            <i class="bi bi-calendar-month"></i>
-            <span class="visually-hidden">Vista Mensual</span>
-        </button>
+<div class="container-fluid">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h2 class="text-gradient">Agenda de Servicios</h2>
+        </div>
+    </div>
+
+    <!-- Barra de búsqueda y filtro -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <input type="text" id="searchInput" class="form-control" placeholder="Buscar por cliente o dirección..." onkeyup="searchTable('searchInput', 'agendaTable')">
+        </div>
+        <div class="col-md-3">
+            <input type="text" id="fechaFiltro" class="form-control" placeholder="Filtrar por fecha">
+        </div>
+    </div>
+
+    <!-- Tabla de servicios -->
+    <div class="table-responsive shadow-sm rounded">
+        <table id="agendaTable" class="table align-middle">
+            <thead class="table-gradient text-white">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Dirección</th>
+                    <th>Servicio</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for servicio in servicios %}
+                <tr onclick="openDynamicModal('{{ url_for('detalle_servicio', id_servicio=servicio['id_servicio']) }}', 'Detalle del Servicio')" style="cursor: pointer;">
+                    <td>{{ servicio['FECHA'] | format_datetime('%d-%m-%Y %H:%M') }}</td>
+                    <td>{{ servicio['CLIENTE'] }}</td>
+                    <td>{{ servicio['DIRECCION'] }}</td>
+                    <td>{{ servicio['SERVICIO'] }}</td>
+                    <td>
+                        <span class="badge {% if servicio['CULMINADO'] == 'SI' %}badge-success{% else %}badge-danger{% endif %}">
+                            {{ 'Finalizado' if servicio['CULMINADO'] == 'SI' else 'Pendiente' }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
-<!-- Contenedor del calendario -->
-<div id="calendarContainer">
-    <!-- Implementa tu calendario (FullCalendar u otro) para mostrar servicios programados -->
-</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // 🔹 Inicializar Flatpickr para el filtro de fecha
+        flatpickr("#fechaFiltro", {
+            enableTime: false,
+            dateFormat: "d/m/Y",
+            onChange: function(selectedDates, dateStr) {
+                filterByDate(dateStr);
+            }
+        });
+
+        // 🔹 Inicializar búsqueda dinámica en tabla
+        document.getElementById("searchInput").addEventListener("keyup", function () {
+            searchTable('searchInput', 'agendaTable');
+        });
+    });
+
+    // 🔍 Función para buscar en la tabla
+    function searchTable(inputId, tableId) {
+        const input = document.getElementById(inputId);
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById(tableId);
+        const tbody = table.querySelector("tbody");
+        const rows = tbody.getElementsByTagName("tr");
+
+        for (let row of rows) {
+            let visible = false;
+            const cells = row.getElementsByTagName("td");
+            for (let cell of cells) {
+                if (cell.innerText.toLowerCase().includes(filter)) {
+                    visible = true;
+                    break;
+                }
+            }
+            row.style.display = visible ? "" : "none";
+        }
+    }
+
+    // 📅 Filtrar por fecha seleccionada
+    function filterByDate(dateStr) {
+        let rows = document.querySelectorAll("#agendaTable tbody tr");
+
+        rows.forEach(row => {
+            let fechaTexto = row.cells[0].innerText.trim(); // 🔹 Fecha en la primera columna
+            let fechaTabla = fechaTexto.split(" ")[0]; // 🔹 Extrae solo la parte de la fecha
+
+            row.style.display = fechaTabla === dateStr ? "" : "none";
+        });
+    }
+</script>
+
 {% endblock %}

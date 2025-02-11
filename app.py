@@ -270,17 +270,34 @@ def nuevo_servicio(id_cliente):
             direccion = request.form['direccion']
             servicio = request.form['servicio']
             notas = request.form.get('notas', '')
-            fecha_hora = request.form['fecha_hora']
-            fecha_hora_obj = datetime.strptime(fecha_hora, '%Y-%m-%d %H:%M')
-            fecha_hora_str = fecha_hora_obj.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+            # 📌 Validar si el campo fecha_hora está presente
+            fecha_hora = request.form.get('fecha_hora')
+            if not fecha_hora:
+                return jsonify({"success": False, "message": "Fecha y hora son obligatorias"})
+
+            # 📌 Convertir la fecha al formato correcto de Google Sheets
+            fecha_hora_obj = datetime.strptime(fecha_hora, '%d-%m-%Y %H:%M')  # Ahora coincide con el formato correcto
+            fecha_hora_str = fecha_hora_obj.strftime('%d/%m/%Y %H:%M:%S')
+
+            # 📌 Insertar en Google Sheets
             new_row = [id_cliente, direccion, servicio, notas, fecha_hora_str, row_id]
             sheet_servicios.append_row(new_row)
+
             return jsonify({"success": True, "message": "Servicio agregado exitosamente"})
+        except ValueError as ve:
+            return jsonify({"success": False, "message": f"Error en formato de fecha: {str(ve)}"})
+        except gspread.exceptions.APIError as ge:
+            return jsonify({"success": False, "message": f"Error al escribir en Google Sheets: {str(ge)}"})
         except Exception as e:
-            return jsonify({"success": False, "message": str(e)})
+            return jsonify({"success": False, "message": f"Error inesperado: {str(e)}"})
+
+    # 📌 Obtener direcciones para el formulario
     direcciones = sheet_direcciones.get_all_records()
     direcciones_filtradas = [d for d in direcciones if str(d['ID_Cliente']) == id_cliente]
+
     return render_template('nuevo_servicio.html', id_cliente=id_cliente, direcciones=direcciones_filtradas)
+
 
 @app.route('/servicios/detalle/<string:id_servicio>', methods=['GET'])
 @login_required
@@ -335,9 +352,22 @@ def borrar_servicio(id_servicio):
 @login_required
 def agenda():
     try:
-        return render_template('agenda.html')
+        servicios = sheet_servicios.get_all_records()
+        servicios_pendientes = []
+        hoy = datetime.utcnow()
+
+        for servicio in servicios:
+            try:
+                fecha_servicio = datetime.strptime(servicio['FECHA'], '%d/%m/%Y %H:%M:%S')
+                if servicio['CULMINADO'] != 'SI' and fecha_servicio >= hoy:
+                    servicios_pendientes.append(servicio)
+            except ValueError as e:
+                print(f"❌ Error de formato en fecha: {servicio['FECHA']} - {e}")
+
+        return render_template('agenda.html', servicios=servicios_pendientes)
     except Exception as e:
         return render_template('error.html', error=e)
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
