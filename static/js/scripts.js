@@ -349,7 +349,19 @@ function loadDynamicModal(url, title) {
 }
 
 
-// Enviar formularios dinámicos
+// 🔹 Capturar el envío del formulario y manejar la respuesta
+document.addEventListener("DOMContentLoaded", function () {
+    const forms = document.querySelectorAll("form");
+
+    forms.forEach(form => {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            submitDynamicForm(event, form);
+        });
+    });
+});
+
+// 🔹 Función para manejar la respuesta del formulario dinámico
 function submitDynamicForm(event, form) {
     event.preventDefault();
 
@@ -357,23 +369,32 @@ function submitDynamicForm(event, form) {
     const action = form.action;
 
     fetch(action, {
-        method: 'POST',
+        method: "POST",
         body: formData,
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const modalElement = document.getElementById('dynamicModal');
-                bootstrap.Modal.getInstance(modalElement).hide();  // Cerrar modal
-                showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1000);  // Recargar página principal
-            } else {
-                showToast(data.message, 'danger');
-            }
-        })
-        .catch(error => {
-            showToast(`Error al procesar el formulario: ${error.message}`, 'danger');
-        });
+    .then(response => response.json())  // 🔹 Convertir respuesta a JSON
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, "success");
+
+            // 🔹 Cerrar modal dinámico
+            setTimeout(() => {
+                const modalElement = document.getElementById("dynamicModal");
+                if (modalElement) {
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) modalInstance.hide();
+                }
+
+                // 🔹 Recargar la lista de direcciones sin refrescar toda la página
+                location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message, "danger");
+        }
+    })
+    .catch(error => {
+        showToast(`Error en la solicitud: ${error.message}`, "danger");
+    });
 }
 
 // Búsqueda dinamica dentro de servicios
@@ -481,3 +502,107 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+function submitDireccionForm() {
+    const form = document.getElementById("direccionForm");
+    const formData = new FormData(form);
+    const action = form.action;
+
+    fetch(action, {
+        method: "POST",
+        body: formData,
+    })
+    .then(response => response.json())  // Convertir respuesta a JSON
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, "success");
+
+            // 🔹 Cerrar solo el modal de "Nueva Dirección"
+            setTimeout(() => {
+                const modalElement = document.getElementById("dynamicModal");
+                if (modalElement && modalElement.classList.contains("show")) {
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) modalInstance.hide();
+                }
+
+                // 🔹 Actualizar la lista de direcciones sin cerrar el modal de "Detalle de Cliente"
+                actualizarListaDirecciones();
+            }, 1000);
+        } else {
+            showToast(data.message, "danger");
+        }
+    })
+    .catch(error => {
+        showToast(`Error en la solicitud: ${error.message}`, "danger");
+    });
+}
+
+// 🔹 Función para actualizar solo la lista de direcciones dentro de "Detalle de Cliente"
+function actualizarListaDirecciones() {
+    const clienteId = document.getElementById("listaDirecciones").dataset.clienteId; // Obtener ID del cliente
+    fetch(`/clientes/detalle/${clienteId}?partial=1`) // Ruta para obtener solo la lista actualizada
+    .then(response => response.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const nuevaLista = doc.querySelector("#listaDirecciones"); // 🔹 Asegurar que el div tenga este ID
+        const listaActual = document.querySelector("#listaDirecciones");
+
+        if (nuevaLista && listaActual) {
+            listaActual.innerHTML = nuevaLista.innerHTML; // Reemplazar solo la lista sin recargar la página
+        }
+    })
+    .catch(error => console.error("Error al actualizar la lista de direcciones:", error));
+}
+
+function submitServicioForm() {
+    const form = document.getElementById("servicioForm");
+    const formData = new FormData(form);
+    const action = form.action;
+
+    fetch(action, {
+        method: "POST",
+        body: formData,
+    })
+    .then(response => response.json())  // Convertir respuesta a JSON
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, "success");
+
+            // 🔹 Cerrar solo el modal de "Nuevo Servicio"
+            setTimeout(() => {
+                const modalElement = document.getElementById("dynamicModal");
+                if (modalElement && modalElement.classList.contains("show")) {
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) modalInstance.hide();
+                }
+
+                // 🔹 Actualizar la lista de servicios sin cerrar el modal de "Detalle de Cliente"
+                actualizarListaServicios();
+            }, 1000);
+        } else {
+            showToast(data.message, "danger");
+        }
+    })
+    .catch(error => {
+        showToast(`Error en la solicitud: ${error.message}`, "danger");
+    });
+}
+
+// 🔹 Función para actualizar solo la lista de servicios dentro de "Detalle de Cliente"
+function actualizarListaServicios() {
+    const clienteId = document.getElementById("listaServicios").dataset.clienteId; // Obtener ID del cliente
+    fetch(`/clientes/detalle/${clienteId}?partial=1`) // Ruta para obtener solo la lista actualizada
+    .then(response => response.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const nuevaLista = doc.querySelector("#listaServicios"); // 🔹 Asegurar que el div tenga este ID
+        const listaActual = document.querySelector("#listaServicios");
+
+        if (nuevaLista && listaActual) {
+            listaActual.innerHTML = nuevaLista.innerHTML; // Reemplazar solo la lista sin recargar la página
+        }
+    })
+    .catch(error => console.error("Error al actualizar la lista de servicios:", error));
+}

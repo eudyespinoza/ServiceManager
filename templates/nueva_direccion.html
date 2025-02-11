@@ -1,23 +1,27 @@
-<div class="container-fluid">
-    <div class="row align-items-center mb-4">
-        <div class="col-md-12">
-            <h2 class="text-gradient">Nueva Dirección</h2>
-        </div>
+<div class="container-fluid py-3">
+    <div class="mb-4">
+        <h3 class="fw-bold text-primary">Nueva Dirección</h3>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label for="direccion" class="form-label">Dirección</label>
-                            <input type="text" id="direccion" name="direccion" class="form-control" placeholder="Ingrese la nueva dirección" required>
-                        </div>
-                        <button type="submit" class="btn btn-gradient w-100">Guardar Dirección</button>
-                    </form>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form id="direccionForm" method="POST" action="{{ url_for('nueva_direccion', id_cliente=id_cliente) }}">
+                <div class="mb-3">
+                    <label for="direccion" class="fw-bold text-secondary">Dirección</label>
+                    <input type="text" id="direccion" name="direccion" class="form-control border-0 shadow-sm" placeholder="Ingrese la nueva dirección" required>
                 </div>
-            </div>
+                <div class="mb-3">
+                    <label for="tipo" class="fw-bold text-secondary">Tipo de Dirección</label>
+                    <select id="tipo" name="tipo" class="form-select border-0 shadow-sm" required>
+                        <option value="Casa">Casa</option>
+                        <option value="Departamento">Departamento</option>
+                        <option value="Oficina">Oficina</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary w-100 shadow-sm" onclick="submitDireccionForm()">Guardar Dirección</button>
+            </form>
         </div>
     </div>
 </div>
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>

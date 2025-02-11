@@ -176,20 +176,28 @@ def borrar_cliente(id_cliente):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
+
 @app.route('/direcciones/nueva/<string:id_cliente>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
 def nueva_direccion(id_cliente):
     if request.method == 'POST':
         try:
-            row_id = str(uuid.uuid4())
+            row_id = str(uuid.uuid4())  # 🔹 Generar ID único
             direccion = request.form['direccion']
-            new_row = [id_cliente, direccion, row_id]
+            tipo = request.form['tipo']  # 🔹 Nuevo campo para el tipo de dirección
+
+            # 📌 Insertar en la tabla con la estructura correcta
+            new_row = [id_cliente, direccion, row_id, tipo]
             sheet_direcciones.append_row(new_row)
-            return jsonify({"success": True, "message": "Dirección agregada exitosamente"})
+
+            # 🔹 Responder con JSON y el código de estado 200 (éxito)
+            return jsonify({"success": True, "message": "Dirección agregada exitosamente"}), 200
         except Exception as e:
-            return jsonify({"success": False, "message": str(e)})
+            return jsonify({"success": False, "message": str(e)}), 500  # 🔹 Código de error 500 si hay un fallo
+
     return render_template('nueva_direccion.html', id_cliente=id_cliente)
+
 
 @app.route('/direcciones/detalle/<string:id_direccion>', methods=['GET'])
 @login_required
@@ -260,44 +268,61 @@ def borrar_direccion(id_direccion):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
+from datetime import datetime
+import uuid
+
 @app.route('/servicios/nuevo/<string:id_cliente>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
 def nuevo_servicio(id_cliente):
     if request.method == 'POST':
         try:
-            row_id = str(uuid.uuid4())
             direccion = request.form['direccion']
             servicio = request.form['servicio']
             notas = request.form.get('notas', '')
+            fecha_hora = request.form['fecha_hora']
+            fecha_hora_obj = datetime.strptime(fecha_hora, '%d-%m-%Y %H:%M')
+            fecha_str = fecha_hora_obj.strftime('%d/%m/%Y %H:%M:%S')  # Formato para Google Sheets
+            hora_str = fecha_hora_obj.strftime('%H:%M:%S')  # Solo hora
 
-            # 📌 Validar si el campo fecha_hora está presente
-            fecha_hora = request.form.get('fecha_hora')
-            if not fecha_hora:
-                return jsonify({"success": False, "message": "Fecha y hora son obligatorias"})
+            # 📌 Obtener datos de la tabla de clientes
+            clientes = sheet_clientes.get_all_records()
 
-            # 📌 Convertir la fecha al formato correcto de Google Sheets
-            fecha_hora_obj = datetime.strptime(fecha_hora, '%d-%m-%Y %H:%M')  # Ahora coincide con el formato correcto
-            fecha_hora_str = fecha_hora_obj.strftime('%d/%m/%Y %H:%M:%S')
+            if not clientes:
+                return jsonify({"success": False, "message": "Error: No hay registros en la base de datos"}), 500
 
-            # 📌 Insertar en Google Sheets
-            new_row = [id_cliente, direccion, servicio, notas, fecha_hora_str, row_id]
+            cliente_data = next((c for c in clientes if str(c.get('Row_ID', '')).strip() == id_cliente), None)
+
+            if not cliente_data:
+                return jsonify({"success": False, "message": "Cliente no encontrado"}), 400
+
+            nombre_cliente = cliente_data['NOMBRE']
+            telefono_cliente = cliente_data['TELEFONO']
+            row_id = str(uuid.uuid4())
+
+            new_row = [
+                id_cliente, nombre_cliente, direccion, telefono_cliente,
+                fecha_str, "", servicio, notas,
+                "", "NO", "false", "", "", "", "","",
+                row_id, row_id,
+                fecha_hora_obj.strftime('%d-%m-%Y %H:%M'),
+                datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'),
+                session['username']
+            ]
+
             sheet_servicios.append_row(new_row)
 
-            return jsonify({"success": True, "message": "Servicio agregado exitosamente"})
-        except ValueError as ve:
-            return jsonify({"success": False, "message": f"Error en formato de fecha: {str(ve)}"})
-        except gspread.exceptions.APIError as ge:
-            return jsonify({"success": False, "message": f"Error al escribir en Google Sheets: {str(ge)}"})
-        except Exception as e:
-            return jsonify({"success": False, "message": f"Error inesperado: {str(e)}"})
+            return jsonify({"success": True, "message": "Servicio agregado correctamente"})
 
-    # 📌 Obtener direcciones para el formulario
+        except ValueError as ve:
+            return jsonify({"success": False, "message": f"Error en formato de fecha: {str(ve)}"}), 400
+        except Exception as e:
+            return jsonify({"success": False, "message": f"Error inesperado: {str(e)}"}), 500
+
     direcciones = sheet_direcciones.get_all_records()
-    direcciones_filtradas = [d for d in direcciones if str(d['ID_Cliente']) == id_cliente]
+    direcciones_filtradas = [d for d in direcciones if str(d.get('ID_Cliente', '')).strip() == id_cliente]
 
     return render_template('nuevo_servicio.html', id_cliente=id_cliente, direcciones=direcciones_filtradas)
-
 
 @app.route('/servicios/detalle/<string:id_servicio>', methods=['GET'])
 @login_required
@@ -348,8 +373,11 @@ def borrar_servicio(id_servicio):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
+from datetime import datetime
+
 @app.route('/agenda')
 @login_required
+@role_required('admin')
 def agenda():
     try:
         servicios = sheet_servicios.get_all_records()
@@ -358,15 +386,30 @@ def agenda():
 
         for servicio in servicios:
             try:
-                fecha_servicio = datetime.strptime(servicio['FECHA'], '%d/%m/%Y %H:%M:%S')
-                if servicio['CULMINADO'] != 'SI' and fecha_servicio >= hoy:
+                fecha_raw = servicio.get('FECHA', '').strip()  # Asegurar que FECHA existe
+                if not fecha_raw:
+                    continue  # Ignorar si está vacío
+
+                # 📌 Detectar y convertir el formato de fecha automáticamente
+                if "T" in fecha_raw and "Z" in fecha_raw:
+                    fecha_servicio = datetime.strptime(fecha_raw, '%Y-%m-%dT%H:%M:%S.%fZ')  # ISO 8601
+                elif ":" in fecha_raw:
+                    fecha_servicio = datetime.strptime(fecha_raw, '%d/%m/%Y %H:%M:%S')  # Con segundos
+                else:
+                    fecha_servicio = datetime.strptime(fecha_raw, '%d/%m/%Y %H:%M')  # Sin segundos
+
+                # 📌 Solo agregar servicios que no están finalizados y son en el futuro
+                if servicio.get('CULMINADO', '') != 'SI' and fecha_servicio >= hoy:
+                    servicio['FECHA_FORMAT'] = fecha_servicio.strftime('%d-%m-%Y %H:%M')  # Formato correcto
                     servicios_pendientes.append(servicio)
-            except ValueError as e:
-                print(f"❌ Error de formato en fecha: {servicio['FECHA']} - {e}")
+            except ValueError as ve:
+                print(f"⚠️ Error en fecha: {fecha_raw} - {ve}")
 
         return render_template('agenda.html', servicios=servicios_pendientes)
     except Exception as e:
         return render_template('error.html', error=e)
+
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

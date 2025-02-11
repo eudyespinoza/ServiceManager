@@ -1,42 +1,34 @@
-<div class="container-fluid">
-    <div class="row align-items-center mb-4">
-        <div class="col-md-12">
-            <h2 class="text-gradient">Nuevo Servicio</h2>
-        </div>
+<div class="container-fluid py-3">
+    <div class="mb-4">
+        <h3 class="fw-bold text-primary">Nuevo Servicio</h3>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('nuevo_servicio', id_cliente=id_cliente) }}">
-                        <div class="mb-3">
-                            <label for="direccion" class="form-label">Dirección</label>
-                            <select id="direccion" name="direccion" class="form-select" required>
-                                <option value="" disabled selected>Seleccione una Dirección</option>
-                                {% for direccion in direcciones %}
-                                <option value="{{ direccion['DIRECCION'] }}">{{ direccion['DIRECCION'] }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="servicio" class="form-label">Servicio</label>
-                            <input type="text" id="servicio" name="servicio" class="form-control" placeholder="Descripción del servicio" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="notas" class="form-label">Notas</label>
-                            <input type="text" id="notas" name="notas" class="form-control" placeholder="Notas adicionales (opcional)">
-                        </div>
-                        <div class="mb-3">
-                            <label for="fecha_hora" class="form-label">Fecha y Hora</label>
-                            <input type="text" id="fecha_hora" name="fecha_hora" class="form-control" placeholder="Seleccione fecha y hora" required>
-                        </div>
-                        <button type="submit" class="btn btn-gradient w-100">Guardar Servicio</button>
-                    </form>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form id="servicioForm" method="POST" action="{{ url_for('nuevo_servicio', id_cliente=id_cliente) }}">
+                <div class="mb-3">
+                    <label for="direccion" class="fw-bold text-secondary">Dirección</label>
+                    <select id="direccion" name="direccion" class="form-select border-0 shadow-sm" required>
+                        <option value="" disabled selected>Seleccione una Dirección</option>
+                        {% for direccion in direcciones %}
+                        <option value="{{ direccion['DIRECCION'] }}">{{ direccion['DIRECCION'] }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-            </div>
+                <div class="mb-3">
+                    <label for="servicio" class="fw-bold text-secondary">Servicio</label>
+                    <input type="text" id="servicio" name="servicio" class="form-control border-0 shadow-sm" placeholder="Descripción del servicio" required>
+                </div>
+                <div class="mb-3">
+                    <label for="notas" class="fw-bold text-secondary">Notas</label>
+                    <input type="text" id="notas" name="notas" class="form-control border-0 shadow-sm" placeholder="Notas adicionales (opcional)">
+                </div>
+                <div class="mb-3">
+                    <label for="fecha_hora" class="fw-bold text-secondary">Fecha y Hora</label>
+                    <input type="text" id="fecha_hora" name="fecha_hora" class="form-control border-0 shadow-sm" placeholder="Seleccione fecha y hora" required>
+                </div>
+                <button type="button" class="btn btn-primary w-100 shadow-sm" onclick="submitServicioForm()">Guardar Servicio</button>
+            </form>
         </div>
     </div>
 </div>
-
-<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>

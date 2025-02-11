@@ -13,7 +13,7 @@
     <!-- Barra de búsqueda y filtro -->
     <div class="row mb-4">
         <div class="col-md-4">
-            <input type="text" id="searchInput" class="form-control" placeholder="Buscar por cliente o dirección..." onkeyup="searchTable('searchInput', 'agendaTable')">
+            <input type="text" id="searchInput" class="form-control" placeholder="Buscar por cliente o dirección...">
         </div>
         <div class="col-md-3">
             <input type="text" id="fechaFiltro" class="form-control" placeholder="Filtrar por fecha">
@@ -35,8 +35,8 @@
             <tbody>
                 {% for servicio in servicios %}
                 <tr onclick="openDynamicModal('{{ url_for('detalle_servicio', id_servicio=servicio['id_servicio']) }}', 'Detalle del Servicio')" style="cursor: pointer;">
-                    <td>{{ servicio['FECHA'] | format_datetime('%d-%m-%Y %H:%M') }}</td>
-                    <td>{{ servicio['CLIENTE'] }}</td>
+                    <td>{{ servicio['FECHA_FORMAT'] }}</td>
+                    <td>{{ servicio['NOMBRE'] }}</td>
                     <td>{{ servicio['DIRECCION'] }}</td>
                     <td>{{ servicio['SERVICIO'] }}</td>
                     <td>
@@ -53,16 +53,16 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // 🔹 Inicializar Flatpickr para el filtro de fecha
+        // 🔹 Inicializar Flatpickr con el formato correcto
         flatpickr("#fechaFiltro", {
             enableTime: false,
-            dateFormat: "d/m/Y",
+            dateFormat: "d-m-Y",
             onChange: function(selectedDates, dateStr) {
                 filterByDate(dateStr);
             }
         });
 
-        // 🔹 Inicializar búsqueda dinámica en tabla
+        // 🔹 Inicializar búsqueda en tabla
         document.getElementById("searchInput").addEventListener("keyup", function () {
             searchTable('searchInput', 'agendaTable');
         });
@@ -89,7 +89,7 @@
         }
     }
 
-    // 📅 Filtrar por fecha seleccionada
+    // 📅 Función para filtrar por fecha
     function filterByDate(dateStr) {
         let rows = document.querySelectorAll("#agendaTable tbody tr");
 
