@@ -1,25 +1,63 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
 from functools import wraps
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from werkzeug.utils import secure_filename
-from datetime import datetime
+import json
 import os
 import uuid
+from datetime import datetime
+
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
 app.secret_key = '24g0iwrvp3rg3pin34pngo'
 
-# Configurar la conexión con Google Sheets
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
-client = gspread.authorize(credentials)
 
-# Abrir las hojas de cálculo
-sheet_clientes = client.open('SMMB').worksheet('CLIENTES')
-sheet_direcciones = client.open('SMMB').worksheet('DIRECCIONES')
-sheet_servicios = client.open('SMMB').worksheet('SERVICIOS')
-sheet_usuarios = client.open('SMMB').worksheet('USUARIOS')
+
+class _MissingGoogleResource:
+    def __init__(self, error_message):
+        self.error_message = error_message
+
+    def __getattr__(self, _):
+        raise RuntimeError(self.error_message)
+
+
+def load_service_account_credentials():
+    credentials_json = os.environ.get('GOOGLE_CREDENTIALS_JSON')
+    if credentials_json:
+        try:
+            credentials_dict = json.loads(credentials_json)
+        except json.JSONDecodeError as exc:
+            raise ValueError('GOOGLE_CREDENTIALS_JSON no contiene un JSON válido.') from exc
+        return ServiceAccountCredentials.from_json_keyfile_dict(credentials_dict, scope)
+
+    credentials_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS', 'credentials.json')
+    if credentials_path and os.path.exists(credentials_path):
+        return ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
+
+    raise FileNotFoundError(
+        'No se encontraron credenciales para Google Sheets. '
+        'Configure la variable de entorno GOOGLE_CREDENTIALS_JSON con el contenido del archivo '
+        'de credenciales o GOOGLE_APPLICATION_CREDENTIALS con la ruta al archivo.'
+    )
+
+
+try:
+    credentials = load_service_account_credentials()
+    client = gspread.authorize(credentials)
+    sheet_clientes = client.open('SMMB').worksheet('CLIENTES')
+    sheet_direcciones = client.open('SMMB').worksheet('DIRECCIONES')
+    sheet_servicios = client.open('SMMB').worksheet('SERVICIOS')
+    sheet_usuarios = client.open('SMMB').worksheet('USUARIOS')
+    google_client_error = None
+except Exception as exc:
+    google_client_error = (
+        'Error al inicializar la conexión con Google Sheets: ' + str(exc)
+    )
+    client = None
+    sheet_clientes = sheet_direcciones = sheet_servicios = sheet_usuarios = _MissingGoogleResource(
+        google_client_error
+    )
 
 UPLOAD_FOLDER = 'uploads/'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -57,6 +95,16 @@ def role_required(role):
         return decorated_function
     return wrapper
 
+
+def google_client_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if google_client_error:
+            return render_template('error.html', error=google_client_error), 500
+        return f(*args, **kwargs)
+
+    return decorated_function
+
 def authenticate_user(username, password):
     try:
         cell = sheet_usuarios.find(username)
@@ -70,6 +118,7 @@ def authenticate_user(username, password):
         return False, None
 
 @app.route('/', methods=['GET', 'POST'])
+@google_client_required
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -92,6 +141,7 @@ def logout():
 
 @app.route('/clientes')
 @login_required
+@google_client_required
 def clientes():
     data = sheet_clientes.get_all_records()
     return render_template('clientes.html', clientes=data)
@@ -99,6 +149,7 @@ def clientes():
 @app.route('/clientes/nuevo', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def nuevo_cliente():
     if request.method == 'POST':
         try:
@@ -114,6 +165,7 @@ def nuevo_cliente():
 
 @app.route('/clientes/detalle/<string:row_id>', methods=['GET'])
 @login_required
+@google_client_required
 def detalle_cliente(row_id):
     try:
         # Buscar el cliente por Row_ID
@@ -143,6 +195,7 @@ def detalle_cliente(row_id):
 @app.route('/clientes/editar/<string:id_cliente>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def editar_cliente(id_cliente):
     try:
         cell = sheet_clientes.find(id_cliente)
@@ -168,6 +221,7 @@ def editar_cliente(id_cliente):
 @app.route('/clientes/borrar/<string:id_cliente>', methods=['POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def borrar_cliente(id_cliente):
     try:
         cell = sheet_clientes.find(id_cliente)
@@ -180,6 +234,7 @@ def borrar_cliente(id_cliente):
 @app.route('/direcciones/nueva/<string:id_cliente>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def nueva_direccion(id_cliente):
     if request.method == 'POST':
         try:
@@ -201,6 +256,7 @@ def nueva_direccion(id_cliente):
 
 @app.route('/direcciones/detalle/<string:id_direccion>', methods=['GET'])
 @login_required
+@google_client_required
 def detalle_direccion(id_direccion):
     try:
         print(f"📌 Buscando dirección con ID: {id_direccion}")
@@ -245,6 +301,7 @@ def detalle_direccion(id_direccion):
 @app.route('/direcciones/editar/<string:id_direccion>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def editar_direccion(id_direccion):
     try:
         cell = sheet_direcciones.find(id_direccion)
@@ -260,6 +317,7 @@ def editar_direccion(id_direccion):
 @app.route('/direcciones/borrar/<string:id_direccion>', methods=['POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def borrar_direccion(id_direccion):
     try:
         cell = sheet_direcciones.find(id_direccion)
@@ -268,12 +326,10 @@ def borrar_direccion(id_direccion):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
-from datetime import datetime
-import uuid
-
 @app.route('/servicios/nuevo/<string:id_cliente>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def nuevo_servicio(id_cliente):
     if request.method == 'POST':
         try:
@@ -326,6 +382,7 @@ def nuevo_servicio(id_cliente):
 
 @app.route('/servicios/detalle/<string:id_servicio>', methods=['GET'])
 @login_required
+@google_client_required
 def detalle_servicio(id_servicio):
     try:
         cell = sheet_servicios.find(id_servicio)
@@ -346,6 +403,7 @@ def detalle_servicio(id_servicio):
 @app.route('/servicios/editar/<string:id_servicio>', methods=['GET', 'POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def editar_servicio(id_servicio):
     try:
         cell = sheet_servicios.find(id_servicio)
@@ -365,6 +423,7 @@ def editar_servicio(id_servicio):
 @app.route('/servicios/borrar/<string:id_servicio>', methods=['POST'])
 @login_required
 @role_required('admin')
+@google_client_required
 def borrar_servicio(id_servicio):
     try:
         cell = sheet_servicios.find(id_servicio)
@@ -373,11 +432,10 @@ def borrar_servicio(id_servicio):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
-from datetime import datetime
-
 @app.route('/agenda')
 @login_required
 @role_required('admin')
+@google_client_required
 def agenda():
     try:
         servicios = sheet_servicios.get_all_records()
